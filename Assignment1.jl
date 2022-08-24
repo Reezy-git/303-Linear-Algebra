@@ -122,7 +122,7 @@ Givens Rotations:
 
 # ╔═╡ e0121f81-04db-4c35-af63-867fc073cb16
 begin
-    function givens_rotation(a, b)
+    function givens_helper(a, b)
         if b == 0
             c = sign(a)
             if c == 0
@@ -148,8 +148,6 @@ begin
         return c, s, r
     end
 
-    G₁=Matrix{Float64}(I, 4, 4)
-
     A = [
         3 4
         0 -2
@@ -157,18 +155,16 @@ begin
         0 2
     ]
 
-    i, j = 3, 2
-
-    c, s, r = givens_rotation(A[i-1,j], -A[i,j])
-
-    G₁[i,j] = s / r
-    G₁[j,j] = c / r
-    G₁[i,i] = c / r
-    G₁[j,i] = -s / r
-
-    G₁
-
-    G₁*A
+    function givens(A, i, j)
+        c, s, r = givens_helper(A[i-1,j], -A[i,j])
+        size = maximum((length(A[:,1]), length(A[1,:])))
+        G=Matrix{Float64}(I, size, size)
+        G[i,j] = s / r
+        G[j,j] = c/ r
+        G[i,i] = c/ r
+        G[j,i] = -s/ r
+        return G, G*A
+    end
 end;
 
 # ╔═╡ 825e4aca-45d4-42af-8c50-1ab5ee670bad
