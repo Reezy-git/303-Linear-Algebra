@@ -159,12 +159,12 @@ begin
 
     i, j = 3, 2
 
-    r, c, s = givens_rotation(A[i-1,j], -A[i,j])
+    c, s, r = givens_rotation(A[i-1,j], -A[i,j])
 
     G₁[i,j] = s / r
-    G₁[j,j] = c/ r
-    G₁[i,i] = c/ r
-    G₁[j,i] = -s/ r
+    G₁[j,j] = c / r
+    G₁[i,i] = c / r
+    G₁[j,i] = -s / r
 
     G₁
 
