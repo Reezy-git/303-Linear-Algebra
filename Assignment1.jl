@@ -14,9 +14,9 @@ md"""
 
 `Due Date`: **Monday 19th September 5pm**
 
-Submission by: Richard Hodges, Henry
+Submission by: Richard Hodges, Henry Hastings
 
-Student IDs: 11139318, 
+Student IDs: 11139318, 35556669
 
 Code is written in Julia and presented in a Pluto.jl notebook.
 """
@@ -39,20 +39,6 @@ $A=\left[\begin{array}{cc}
 # ╔═╡ a01b5da6-9d2d-429b-ac55-93b8a3858a99
 md"""
 Householder Reflectors:
-
-Since column 1 is correctly formatted we only need to perform one Householder reflection to diagonalize this matrix. We take the portion of the matrix we will be acting apon and add padding. This results in:
-"""
-
-# ╔═╡ 3930a39b-c26b-4a42-a3da-8550e2fce0f9
-md"""
-$M=\left[
-	\begin{array}{cc}
-	0\\
-	-2\\
-	1\\
-	2
-	\end{array}
-\right]$
 """
 
 # ╔═╡ 9cdf0092-5d3e-4521-8d4a-07c962a0772d
@@ -84,34 +70,54 @@ end;
 
 # ╔═╡ 64a5e043-7b71-4559-86cc-a316bfc3d668
 md"""
+Since column 1 is correctly formatted we only need to perform one Householder reflection to diagonalize this matrix. We take the portion of the matrix we will be acting apon and add padding. This results in:
+
+$M=\left[
+	\begin{array}{cc}
+	0\\
+	-2\\
+	1\\
+	2
+	\end{array}
+\right]$
+
 We must find `θ=norm(M)` this is valid since we have the special case where M is a column vector and subtract `θ*e₂` from our `M`
-"""
 
-# ╔═╡ 882a0b1c-85d8-475f-be5e-1828faa10196
-md"""
 $θ=norm(M)=3$
-"""
 
-# ╔═╡ 7a949596-5c6e-4faa-8971-154774836859
-md"""
 $\vec{v}=M-θ*e₂=\left[\begin{array}{c}
 0\\
 -5\\
 1\\
 2
 \end{array}\right]$
-"""
 
-# ╔═╡ ace59a76-703d-49eb-bea3-479c245ac022
-H
+We then find 
 
-# ╔═╡ fe69bf18-119a-48ea-bee5-1ba5faa0b678
-md"""
-The outterproduct of our vector *v* gives us the householder matrix H
+$β=\frac{2}{\vec{v}^{T}\vec{v}}$
 
-$H=\frac{1}{3}\left[\begin{array}{c}
-1 & 0 & 0 & 0\\
-0 & -2 & 1 & 2
+Using this to find H
+
+$H = I - β \vec{v}\vec{v}^{T} = \frac{1}{3}\left[\begin{array}{cc}
+3 & 0 & 0 & 0\\
+0 & -2 & 1 & 2\\
+0 & 1 & 2.8 & -0.4\\
+0 & 2 & -0.4 & 2.2
+\end{array}\right]$
+
+Thus we find 
+
+$Q = \frac{1}{3}\left[\begin{array}{cc}
+3 & 0 & 0 & 0\\
+0 & -2 & 1 & 2\\
+0 & 1 & 2.8 & -0.4\\
+0 & 2 & -0.4 & 2.2
+\end{array}\right]
+\quad R =\left[\begin{array}{cc}
+3 & 4\\
+0 & 3\\
+0 & 0\\
+0 & 0
 \end{array}\right]$
 """
 
@@ -120,9 +126,8 @@ md"""
 Givens Rotations:
 """
 
-# ╔═╡ e0121f81-04db-4c35-af63-867fc073cb16
-begin
-    function givens_helper(a, b)
+# ╔═╡ 50b5be53-e0a1-46f9-978d-6512f993eae8
+function givens_helper(a, b)
         if b == 0
             c = sign(a)
             if c == 0
@@ -146,26 +151,36 @@ begin
             r = b * u
         end
         return c, s, r
-    end
-
-    A = [
-        3 4
-        0 -2
-        0 1
-        0 2
-    ]
-
-    function givens(A, i, j)
-        c, s, r = givens_helper(A[i-1,j], -A[i,j])
-        size = maximum((length(A[:,1]), length(A[1,:])))
-        G=Matrix{Float64}(I, size, size)
-        G[i,j] = s / r
-        G[j,j] = c/ r
-        G[i,i] = c/ r
-        G[j,i] = -s/ r
-        return G, G*A
-    end
 end;
+
+# ╔═╡ 63ef1671-08de-4556-aede-c87165243993
+md"""
+re-do givens helper from class notes
+"""
+
+# ╔═╡ f1e8717a-b80d-452c-a808-851d5735aa7a
+givens_helper(4, 2)
+
+# ╔═╡ 6937d7e4-cb7e-4d3c-8247-6b832e267038
+md"""
+We first must find c, s & r using the algorithm defined by the code for the function above: givens_helper with a = 
+
+$c = -2,\quad s = 1,\quad r=√5$
+
+We use this to create our first givens matrix
+
+$G_{32}= \left[\begin{array}{cc}
+1 & 0 & 0 & 0\\
+0 & \frac{-2}{\sqrt{5}} & \frac{1}{\sqrt{5}} & 0\\
+0 & \frac{-1}{\sqrt{5}} & \frac{-2}{\sqrt{5}} & 0\\
+0&0&0&1
+\end{array}\right] \quad\quad G_{32}A = \left[\begin{array}{c}
+3 & 4\\
+0 & \frac{5}{\sqrt{5}}\\
+0 & 0\\
+0 & 2
+\end{array}\right]$
+"""
 
 # ╔═╡ 825e4aca-45d4-42af-8c50-1ab5ee670bad
 md"""
@@ -194,16 +209,31 @@ end;
 
 # ╔═╡ 470ae356-7ebe-4d9a-b582-b3796e36d7c1
 md"""
-Given the QR factors of Aᵀ we can find
+Given the QR factors of Aᵀ we can find the economy QR
 
-$Aᵀ=\frac{1}{3}\left[\begin{array}{cc}
-2 & 2\\
-1 & 4\\
-2 & 5\end{array}\right]$
+$A^T=Y\hat{R}=\frac{1}{3}\left[\begin{array}{cc}
+2 & -2\\
+1 & 2\\
+2 & 1
+\end{array}\right]\left[\begin{array}{cc}
+1 & 2\\
+0 & 1
+\end{array}\right]$
+
+This gives us
+
+$\hat{R}^T\vec{u}=\left[\begin{array}{cc}
+1\\1
+\end{array}\right]$
+We can solve this system using forward substitution
+
+$\left[\begin{array}{cc}
+1 & 0 & : & 1\\
+2 & 1 & : & 1
+\end{array}\right]\quad\Rightarrow\quad x_{1}=1,\quad x_{2}=-1$
+
+We use this $\vec{x}$ to 
 """
-
-# ╔═╡ b4469009-a045-4932-bc26-0b8943d8ff83
-
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -247,18 +277,15 @@ uuid = "8e850b90-86db-534c-a0d3-1478176c7d93"
 # ╟─505f4ad4-6f69-4101-8745-ac1e75f367a4
 # ╟─910ed377-7895-4da6-ad1d-d2fa5a78d8ca
 # ╟─a01b5da6-9d2d-429b-ac55-93b8a3858a99
-# ╟─3930a39b-c26b-4a42-a3da-8550e2fce0f9
 # ╠═9cdf0092-5d3e-4521-8d4a-07c962a0772d
 # ╟─64a5e043-7b71-4559-86cc-a316bfc3d668
-# ╟─882a0b1c-85d8-475f-be5e-1828faa10196
-# ╟─7a949596-5c6e-4faa-8971-154774836859
-# ╟─ace59a76-703d-49eb-bea3-479c245ac022
-# ╟─fe69bf18-119a-48ea-bee5-1ba5faa0b678
-# ╟─90ef3c8a-c8d7-47e6-b7e6-0e10a72a255f
-# ╟─e0121f81-04db-4c35-af63-867fc073cb16
+# ╠═90ef3c8a-c8d7-47e6-b7e6-0e10a72a255f
+# ╠═50b5be53-e0a1-46f9-978d-6512f993eae8
+# ╟─63ef1671-08de-4556-aede-c87165243993
+# ╠═f1e8717a-b80d-452c-a808-851d5735aa7a
+# ╠═6937d7e4-cb7e-4d3c-8247-6b832e267038
 # ╟─825e4aca-45d4-42af-8c50-1ab5ee670bad
 # ╟─41fc5b67-869c-4b1c-bb5e-cbcd6d2217c1
-# ╟─470ae356-7ebe-4d9a-b582-b3796e36d7c1
-# ╠═b4469009-a045-4932-bc26-0b8943d8ff83
+# ╠═470ae356-7ebe-4d9a-b582-b3796e36d7c1
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
