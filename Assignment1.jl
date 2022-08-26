@@ -9,7 +9,6 @@ using LinearAlgebra # importing the LinearAlgebra package
 
 # ╔═╡ d5305a50-2338-11ed-1517-1defdfa17b48
 md"""
-
 # **MATH303-22S2** - _Assignment 1_
 
 `Due Date`: **Monday 19th September 5pm**
@@ -50,9 +49,9 @@ begin
 		0 2
 	]
 	H = Matrix(I, 4, 4)
-	m_=[0; -2; 1; 2]
+	m_=[0; -2; 1; 2]  # being lazy and not slicing from M then padding
 	θ=norm(m_)
-	e₂=[0; 1; 0; 0]
+	e₂=[0; 1; 0; 0]  # in my actual code implementation I slice from identity matrix
 	v_ = m_ - θ*e₂
 	β = 2 / norm(v_)^2
 	H = H - β*v_*transpose(v_)
@@ -74,11 +73,9 @@ $M=\left[
 
 # ╔═╡ 36bf99dc-9374-4c8e-9c7f-91657411f06f
 md"""
-We must find `θ=norm(M)` this is valid since we have the special case where M is a column vector and subtract `θ*e₂` from our `M`
+We must find `θ=norm(M)` this is valid since we have the special case where M is a column vector and subtract $θ*e₂$ from our $M$
 
 $θ=norm(M)=3$
-
-
 """
 
 # ╔═╡ 609409e6-84a2-4c3d-9d6e-4ebc64a08e5a
@@ -126,6 +123,7 @@ $Q = \frac{1}{3}\left[\begin{array}{cc}
 0 & 0\\
 0 & 0
 \end{array}\right]$
+
 -----
 """
 
@@ -135,45 +133,30 @@ b) Givens Rotations:
 """
 
 # ╔═╡ 50b5be53-e0a1-46f9-978d-6512f993eae8
-function givens_helper(a, b)
-        if b == 0
-            c = sign(a)
-            if c == 0
-                c = 1
-            end
-        elseif a == 0
-            c = 0
-            s = sign(b)
-            r = abs(b)
-        elseif abs(a) > abs(b)
-            t = b/a
-            u = sign(a) * √(1 + t^2)
-            c = 1 / u
-            s = c * t
-            r = a * u
-        else
-            t = a / b
-            u = sign(b) * √(1 + t^2)
-            s = 1 / u
-            c = s * t
-            r = b * u
-        end
-    return c, s, r
-end;
-
-# ╔═╡ 63ef1671-08de-4556-aede-c87165243993
-md"""
-re-do givens helper from class notes
-"""
-
-# ╔═╡ f1e8717a-b80d-452c-a808-851d5735aa7a
-givens_helper(4, 2)
+function givens_helper(A, row , col)
+	"""Takes input, matrix, and row/column target and returns values for Givens rotations"""
+	c, s = A[col,col], A[row,col]
+	r² = c^2 + s^2
+    return c, s, r²
+end
 
 # ╔═╡ 6937d7e4-cb7e-4d3c-8247-6b832e267038
 md"""
-We first must find c, s & r using the algorithm defined by the code for the function above: givens_helper with a = 
+We first must find c, s & r using the algorithm defined by the code for the function above: givens_helper with A, 3, 2
 
 $c = -2,\quad s = 1,\quad r=√5$
+"""
+
+# ╔═╡ ed0c0cd2-2f34-4c65-810b-e711d51dd50f
+md"""
+We put create our Givens rotation matrix like so:
+
+$G_{32}= \left[\begin{array}{cc}
+1 & 0 & 0 & 0\\
+0 & \frac{c}{r} & \frac{s}{r} & 0\\
+0 & -\frac{s}{r} & \frac{c}{r} & 0\\
+0&0&0&1
+\end{array}\right]$
 """
 
 # ╔═╡ 64c214dd-6424-40d2-a0c5-6fa459384fde
@@ -187,16 +170,69 @@ $G_{32}= \left[\begin{array}{cc}
 0&0&0&1
 \end{array}\right] \quad\quad G_{32}A = \left[\begin{array}{c}
 3 & 4\\
-0 & \frac{5}{\sqrt{5}}\\
+0 & \sqrt{5}\\
 0 & 0\\
 0 & 2
 \end{array}\right]$
 """
 
+# ╔═╡ c4d119cb-5c97-4cbb-a0fe-671b3235e439
+md"""
+We repeat the process with row 4 column 2.
+
+$G_{42}=\left[\begin{array}{cc}
+1 & 0 & 0 & 0\\
+0 & \frac{\sqrt{5}}{3} & 0 & \frac{2}{3}\\
+0 & 0 & 1 & 0\\
+0 & -\frac{2}{3} & 0 & \frac{\sqrt{5}}{3}
+\end{array}\right]
+\quad\Rightarrow\quad
+G_{42}G_{32}A=
+\left[\begin{array}{cc}
+3 & 4\\
+0 & 3\\
+0 & 0\\
+0 & 0
+\end{array}\right]$
+"""
+
+# ╔═╡ a15aeec1-01ff-4b06-966c-148f4da3d220
+md"""
+We obtain Q in the following way.
+
+$Q=G_{32}^TG_{42}^T=\left[\begin{array}{cc}
+1 & 0 & 0 & 0\\
+0 & -\frac{2}{3} & -\frac{1}{\sqrt{5}} & \frac{4}{3\sqrt{5}}\\
+0 & \frac{1}{3} & -\frac{2}{\sqrt{5}} & -\frac{2}{3\sqrt{5}}\\
+0 & \frac{2}{3} & 0 & \frac{\sqrt{5}}{3}
+\end{array}\right]$
+"""
+
+# ╔═╡ aafcf37b-8b71-4bb2-95d6-b6860db77e3c
+begin
+	G32=[
+		1 0 0 0
+		0 -2/√5 1/√5 0
+		0 -1/√5 -2/√5 0
+		0 0 0 1
+	]
+	G32*M
+	c, s, r² = givens_helper(G32*M, 4, 2)
+	r=sqrt(r²)
+	G42 = [
+		1 0 0 0
+		0 c/r 0 s/r
+		0 0 1 0
+		0 -s/r 0 c/r
+	]
+	G42*G32*M
+	G32'*G42'
+
+end;
+
 # ╔═╡ 825e4aca-45d4-42af-8c50-1ab5ee670bad
 md"""
 ### *Question Two*
-
 Given the QR factors of Aᵀ we can find the economy QR
 
 $A^T=Y\hat{R}=\frac{1}{3}\left[\begin{array}{cc}
@@ -211,13 +247,11 @@ $A^T=Y\hat{R}=\frac{1}{3}\left[\begin{array}{cc}
 
 # ╔═╡ 798513af-4235-4c1d-8470-d0a4744af373
 md"""
-
 This gives us
 
 $\hat{R}^T\vec{u}=\left[\begin{array}{cc}
 1\\1
 \end{array}\right]$
-
 """
 
 # ╔═╡ 74a3bb34-448e-457e-85cb-b2689152361e
@@ -228,12 +262,10 @@ $\left[\begin{array}{cc}
 1 & 0 & : & 1\\
 2 & 1 & : & 1
 \end{array}\right]\quad\Rightarrow\quad x_{1}=1,\quad x_{2}=-1$
-
 """
 
 # ╔═╡ db055454-a28f-4d72-9db5-26ee5b8f7656
 md"""
-
 We use this $\vec{x}$ to find $\vec{b}$ where
 
 $Y\vec{x}=\vec{b} \quad\Rightarrow\quad \frac{1}{3}\left[\begin{array}{cc}
@@ -249,6 +281,7 @@ $Y\vec{x}=\vec{b} \quad\Rightarrow\quad \frac{1}{3}\left[\begin{array}{cc}
 -1\\
 1
 \end{array}\right]$
+
 -----
 """
 
@@ -335,10 +368,11 @@ md"""
 We can solve again when $a∈\lbrace 1,\, 2 \rbrace$
 
 $a=1 \;\Rightarrow\; \lambda\approx-0.21,\,1.76,\,10.43$
-
 $a=2 \;\Rightarrow\; \lambda\approx0.252,\,2.27,\,10.48$
 
-So we can see when $a>\frac{7}{5}$ we get positive eigen values and thus a positive definite matrix. $\square$
+So we can see when $a>\frac{7}{5}$ 
+
+we get positive eigen values and thus a positive definite matrix. $\square$
 
 -----
 """
@@ -424,6 +458,7 @@ $A=LDL^T=
 0 & 1 & -\frac{1}{2}\\
 0 & 0 & 1
 \end{array}\right]$
+
 --------
 """
 
@@ -469,15 +504,12 @@ $\vec{y}=\left[\begin{array}{cc} 1 \\ 0\\ \frac{1}{3}\end{array}\right]\quad\Rig
 # ╔═╡ d9bf4eb8-74c2-4e51-8270-833c5acad20f
 md"""
 $R\vec{x}=\vec{y}\;\Leftrightarrow\;
-
 \left[\begin{array}{cc}
 1 & 1 & 0 & : & 1\\
 0 & 2 & -1 & : & 0\\
 0 & 0 & 3 & : & \frac{1}{3}
 \end{array}\right]
-
 \quad\Rightarrow\quad
-
 \vec{x} = \left[\begin{array}{cc}
 \frac{17}{18}\\
 \frac{1}{18}\\
@@ -502,28 +534,21 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 # ╔═╡ 00000000-0000-0000-0000-000000000002
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
-
 julia_version = "1.7.3"
 manifest_format = "2.0"
-
 [[deps.Artifacts]]
 uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
-
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
-
 [[deps.Libdl]]
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
-
 [[deps.LinearAlgebra]]
 deps = ["Libdl", "libblastrampoline_jll"]
 uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
-
 [[deps.OpenBLAS_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Libdl"]
 uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
-
 [[deps.libblastrampoline_jll]]
 deps = ["Artifacts", "Libdl", "OpenBLAS_jll"]
 uuid = "8e850b90-86db-534c-a0d3-1478176c7d93"
@@ -535,7 +560,7 @@ uuid = "8e850b90-86db-534c-a0d3-1478176c7d93"
 # ╟─505f4ad4-6f69-4101-8745-ac1e75f367a4
 # ╟─910ed377-7895-4da6-ad1d-d2fa5a78d8ca
 # ╟─a01b5da6-9d2d-429b-ac55-93b8a3858a99
-# ╠═9cdf0092-5d3e-4521-8d4a-07c962a0772d
+# ╟─9cdf0092-5d3e-4521-8d4a-07c962a0772d
 # ╟─64a5e043-7b71-4559-86cc-a316bfc3d668
 # ╟─36bf99dc-9374-4c8e-9c7f-91657411f06f
 # ╟─609409e6-84a2-4c3d-9d6e-4ebc64a08e5a
@@ -544,10 +569,12 @@ uuid = "8e850b90-86db-534c-a0d3-1478176c7d93"
 # ╟─087e7c14-7f4f-4c26-809d-bf0da209ae24
 # ╟─90ef3c8a-c8d7-47e6-b7e6-0e10a72a255f
 # ╠═50b5be53-e0a1-46f9-978d-6512f993eae8
-# ╟─63ef1671-08de-4556-aede-c87165243993
-# ╠═f1e8717a-b80d-452c-a808-851d5735aa7a
 # ╟─6937d7e4-cb7e-4d3c-8247-6b832e267038
+# ╟─ed0c0cd2-2f34-4c65-810b-e711d51dd50f
 # ╟─64c214dd-6424-40d2-a0c5-6fa459384fde
+# ╟─c4d119cb-5c97-4cbb-a0fe-671b3235e439
+# ╟─a15aeec1-01ff-4b06-966c-148f4da3d220
+# ╟─aafcf37b-8b71-4bb2-95d6-b6860db77e3c
 # ╟─825e4aca-45d4-42af-8c50-1ab5ee670bad
 # ╟─798513af-4235-4c1d-8470-d0a4744af373
 # ╟─74a3bb34-448e-457e-85cb-b2689152361e
